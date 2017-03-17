@@ -71,6 +71,24 @@ extensions:
 - `https_proxy: {address:port}`
     - Sets the https proxy server.
     
+#### Suite configuration example ####
+
+**this configuration override the codeception.yml configuration**
+
+```yaml
+class_name: AcceptanceTester
+modules:
+    enabled:
+        - WebDriver:
+            port: 5555
+            browser: chrome
+            url: https://www.example.de/
+            capabilities:
+                proxyType: 'manual'
+                httpProxy: 'http-proxy.example.de:3128'
+                sslProxy: 'https-proxy.example.de:3128'
+```
+ 
 ### Usage ###
 
 Once installed and enabled, running your tests with `php codecept run` will

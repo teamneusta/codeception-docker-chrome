@@ -1,0 +1,29 @@
+{
+    "name": "teamneusta/codeception-docker-chrome",
+    "description": "Codeception extension to start automatically an docker chrome instance",
+    "license": "MIT",
+    "type": "library",
+    "minimum-stability": "stable",
+    "keywords": ["codeception", "chrome", "docker"],
+    "authors": [
+        {
+            "name": "Benjamin Kluge",
+            "email": "b.kluge@neusta.de"
+        }
+    ],
+    "require": {
+        "php": ">=7.0.0",
+        "codeception/codeception": "^2.2",
+        "monolog/monolog": "*",
+        "symfony/process": "*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^5.7",
+        "mikey179/vfsStream": "^1.6"
+    },
+    "autoload": {
+        "psr-4": {
+            "Codeception\\Extension\\": "src/"
+        }
+    }
+}

@@ -71,6 +71,10 @@ extensions:
 - `https_proxy: {address:port}`
     - Sets the https proxy server.
     
+##### Registry Support #####
+
+- `private-registry: {address:port}`
+    
 #### Suite configuration example ####
 
 **this configuration override the codeception.yml configuration**

@@ -222,16 +222,17 @@ class DockerChrome extends Extension
         if (!empty($this->config['https_proxy'])) {
             $environment[] = 'https_proxy=' . $this->config['https_proxy'];
         }
+        $registryPrefix = !empty($this->config['private-registry']) ? $this->config['private-registry'] . '/' : '';
 
         $dockerYaml = [
             'hub'    => [
-                'image'       => 'selenium/hub',
+                'image'       => $registryPrefix . 'selenium/hub',
                 'ports'       => [$this->config['port'] . ':4444'],
                 'environment' => $environment
             ],
             'chrome' => [
                 'volumes'     => ['/dev/shm:/dev/shm'],
-                'image'       => 'selenium/node-chrome',
+                'image'       => $registryPrefix . 'selenium/node-chrome',
                 'links'       => ['hub'],
                 'environment' => $environment
             ]

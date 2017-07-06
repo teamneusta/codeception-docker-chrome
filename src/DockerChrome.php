@@ -74,7 +74,7 @@ class DockerChrome extends Extension
 
         $this->initDefaultConfig();
         $command = $this->getCommand();
-        $this->process = $process ?: new Process($command, realpath(__DIR__));
+        $this->process = $process ?: new Process($command, realpath(__DIR__), null, null, 3600);
     }
 
     /**

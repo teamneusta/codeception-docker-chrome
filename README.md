@@ -41,6 +41,7 @@ extensions:
         Codeception\Extension\DockerChrome:
             suites: ['acceptance']
             debug: true
+            extra_hosts: ['foo.loc:192.168.0.123']
 ```
 
 #### Available options ####
@@ -56,6 +57,9 @@ extensions:
 - `debug: {true|false}`
     - Display debug output
     - Default: `false`
+- `extra_hosts: ['domain:ip', 'domain:ip']`
+    - set extra hosts for docker container to connect to local environment over network (not 127.0.0.1)
+    - Default: `null`
 - `suites: {array|string}`
     - If omitted, Chrome is started for all suites.
     - Specify an array of suites or a single suite name.
@@ -70,7 +74,9 @@ extensions:
     - Sets the http proxy server.
 - `https_proxy: {address:port}`
     - Sets the https proxy server.
-    
+- `no_proxy: address1.local,adress2.de`
+    - Sets the no proxy for specific domains.
+        
 ##### Registry Support #####
 
 - `private-registry: {address:port}`
@@ -91,6 +97,7 @@ modules:
                 proxyType: 'manual'
                 httpProxy: 'http-proxy.example.de:3128'
                 sslProxy: 'https-proxy.example.de:3128'
+                noProxy: 'address1.local,adress2.de'
 ```
  
 ### Usage ###

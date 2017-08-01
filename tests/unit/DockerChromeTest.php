@@ -141,7 +141,7 @@ class DockerChromeTest extends \Codeception\Test\Unit
 
     /**
      * testModuleInitShouldThrowAnExceptionIfProcessIsNotRunning
-     *
+     *suites
      * @return void
      */
     public function testModuleInitShouldThrowAnExceptionIfProcessIsNotRunning()
@@ -244,6 +244,113 @@ class DockerChromeTest extends \Codeception\Test\Unit
     }
 
     /**
+     * testModuleInitShouldCreateDockerComposeYamlAndStartProcessIfNoSuiteAreSetWithNoProxy
+     *
+     * @return void
+     */
+    public function testModuleInitShouldCreateDockerComposeYamlAndStartProcessIfNoSuiteAreSetWithNoProxy()
+    {
+        $this->processProphecy->start(Argument::type('callable'))->shouldBeCalled()->will(function ($args) {
+            $args[0]('info', 'Registered a node');
+        });
+        $this->processProphecy->getCommandLine(Argument::any())->shouldBeCalled();
+        $this->processProphecy->isRunning()->shouldBeCalled()->willReturn(true);
+        $this->processProphecy->signal(Argument::type('int'))->shouldNotBeCalled();
+        $this->processProphecy->wait()->shouldNotBeCalled();
+
+        $this->suiteEventProphecy->getSettings()->willReturn([
+            'modules' => [
+                'enabled' => [
+                    [
+                        'WebDriver' => [
+                            'port'         => 2222,
+                            'capabilities' => [
+                                'httpProxy' => 'http-proxy:3128',
+                                'sslProxy'  => 'https-proxy:3128',
+                                'noProxy'  => 'domain.loc',
+                            ]
+                        ]
+                    ]
+                ]
+            ]
+        ])->shouldBeCalled();
+        $this->dockerChrome->moduleInit($this->suiteEventProphecy->reveal());
+        $this->assertFileExists($this->dockerComposeFilePath);
+        $this->assertEquals([
+            'hub'    => [
+                'image'       => 'selenium/hub',
+                'ports'       => ['2222:4444'],
+                'environment' => [
+                    'http_proxy=http-proxy:3128',
+                    'https_proxy=https-proxy:3128',
+                    'no_proxy=domain.loc',
+                ],
+            ],
+            'chrome' => [
+                'volumes'     => [
+                    '/dev/shm:/dev/shm'
+                ],
+                'image'       => 'selenium/node-chrome',
+                'links'       => ['hub'],
+                'environment' => [
+                    'http_proxy=http-proxy:3128',
+                    'https_proxy=https-proxy:3128',
+                    'no_proxy=domain.loc',
+                ],
+            ]
+        ], Yaml::parse(file_get_contents($this->dockerComposeFilePath)));
+    }
+
+    /**
+     * testModuleInitShouldCreateDockerComposeYamlAndStartProcessIfNoSuiteAreSetWithExtraHosts
+     *
+     * @return void
+     */
+    public function testModuleInitShouldCreateDockerComposeYamlAndStartProcessIfNoSuiteAreSetWithExtraHosts()
+    {
+        $this->dockerChrome = new Codeception\Extension\DockerChrome(['extra_hosts' => ['someDomain.loc:127.0.0.1'], 'debug' => true, 'path' => vfsStream::url('docker/usr/local/bin/docker-composes')], [], $this->processProphecy->reveal());
+
+        $this->processProphecy->start(Argument::type('callable'))->shouldBeCalled()->will(function ($args) {
+            $args[0]('info', 'Registered a node');
+        });
+        $this->processProphecy->getCommandLine(Argument::any())->shouldBeCalled();
+        $this->processProphecy->isRunning()->shouldBeCalled()->willReturn(true);
+        $this->processProphecy->signal(Argument::type('int'))->shouldNotBeCalled();
+        $this->processProphecy->wait()->shouldNotBeCalled();
+
+        $this->suiteEventProphecy->getSettings()->willReturn([
+            'modules' => [
+                'enabled' => [
+                    [
+                        'WebDriver' => [
+                            'port'         => 2222
+                        ]
+                    ]
+                ]
+            ]
+        ])->shouldBeCalled();
+        $this->dockerChrome->moduleInit($this->suiteEventProphecy->reveal());
+        $this->assertFileExists($this->dockerComposeFilePath);
+        $this->assertEquals([
+            'hub'    => [
+                'image'       => 'selenium/hub',
+                'ports'       => ['2222:4444'],
+                'environment' => [],
+                'extra_hosts' => ['someDomain.loc:127.0.0.1']
+            ],
+            'chrome' => [
+                'volumes'     => [
+                    '/dev/shm:/dev/shm'
+                ],
+                'image'       => 'selenium/node-chrome',
+                'links'       => ['hub'],
+                'environment' => [],
+                'extra_hosts' => ['someDomain.loc:127.0.0.1']
+            ]
+        ], Yaml::parse(file_get_contents($this->dockerComposeFilePath)));
+    }
+
+    /**
      * testDestructShouldStopServer
      *
      * @return void
@@ -256,12 +363,7 @@ class DockerChromeTest extends \Codeception\Test\Unit
         $this->dockerChrome->__destruct();
     }
 
-    /**
-     * _before
-     *
-     * @return void
-     */
-    protected function _before()
+    protected function initExtension()
     {
         vfsStream::setup('docker', null, [
             'usr' => [
@@ -284,6 +386,16 @@ class DockerChromeTest extends \Codeception\Test\Unit
         $this->processProphecy->isRunning();
         $this->processProphecy->signal(Argument::type('int'));
         $this->processProphecy->wait();
+    }
+
+    /**
+     * _before
+     *
+     * @return void
+     */
+    protected function _before()
+    {
+        $this->initExtension();
     }
 
     /**

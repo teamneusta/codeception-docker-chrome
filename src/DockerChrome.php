@@ -93,11 +93,17 @@ class DockerChrome extends Extension
         // Set default debug mode
         $this->config['debug'] = $this->config['debug'] ?? false;
 
+        // Set default extra_hosts mode
+        $this->config['extra_hosts'] = $this->config['extra_hosts'] ?? false;
+
         // Set default http proxy
         $this->config['http_proxy'] = $this->config['http_proxy'] ?? '';
 
         // Set default https proxy
         $this->config['https_proxy'] = $this->config['https_proxy'] ?? '';
+
+        // Set default https proxy
+        $this->config['no_proxy'] = $this->config['no_proxy'] ?? '';
 
         if (!file_exists($this->config['path'])) {
             throw new ExtensionException($this, "File not found: {$this->config['path']}.");
@@ -203,6 +209,7 @@ class DockerChrome extends Extension
                 $this->config['port'] = $moduleSettings['port'] ?? $this->config['port'];
                 $this->config['http_proxy'] = $moduleSettings['capabilities']['httpProxy'] ?? $this->config['http_proxy'];
                 $this->config['https_proxy'] = $moduleSettings['capabilities']['sslProxy'] ?? $this->config['https_proxy'];
+                $this->config['no_proxy'] = $moduleSettings['capabilities']['noProxy'] ?? $this->config['no_proxy'];
             }
         }
     }
@@ -222,6 +229,10 @@ class DockerChrome extends Extension
         if (!empty($this->config['https_proxy'])) {
             $environment[] = 'https_proxy=' . $this->config['https_proxy'];
         }
+        if (!empty($this->config['no_proxy'])) {
+            $environment[] = 'no_proxy=' . $this->config['no_proxy'];
+        }
+
         $registryPrefix = !empty($this->config['private-registry']) ? $this->config['private-registry'] . '/' : '';
 
         $dockerYaml = [
@@ -237,6 +248,11 @@ class DockerChrome extends Extension
                 'environment' => $environment
             ]
         ];
+
+        if ($this->config['extra_hosts']) {
+            $dockerYaml['hub']['extra_hosts'] = $this->config['extra_hosts'];
+            $dockerYaml['chrome']['extra_hosts'] = $this->config['extra_hosts'];
+        }
 
         file_put_contents(__DIR__ . '/docker-compose.yml', Yaml::dump($dockerYaml));
     }
